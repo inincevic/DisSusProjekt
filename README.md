@@ -1,2 +1,2 @@
 # DisSusProjekt
-Repozitorij u kojemu ce biti moj prokekt za kolegij Raspodijeljeni sustavi
+Repozitorij u kojemu ce biti moj projekt za kolegij Raspodijeljeni sustavi
