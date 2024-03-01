@@ -9,3 +9,9 @@ Kako bi se smanjilo kompliciranje i kolicina rada provedenog na workerima, worke
 ## Pokretanje load balancera
 Unutar ./src/ potrebno je pokreniti slijedecu naredbu
 > python -m uvicorn balancer:app --reload
+
+## Pokretanje workera
+S obzirom na broj worker-a, potrebno je odrediti nekoliko portova na kojima ce se ti workeri pokretati.
+Za odredjivanje porta na kojem ce se pokretati worker, koristimo slijedecu naredbu unutar ./src/
+> python -m uvicorn worker:app --reload --port X
+Gdje je X broj porta.
