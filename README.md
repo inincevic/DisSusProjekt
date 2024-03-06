@@ -1,6 +1,11 @@
 # DisSusProjekt
 Repozitorij u kojemu ce biti moj projekt za kolegij Raspodijeljeni sustavi
 
+## Zadatak
+Generičan load balancer koji ima failover u slučaju prekida rada load balancera.
+Radne stanice, ili serveri, kojima load balancer šalje korisnike sami će se registrirati u load balanceru, te će load balancer provjeravati njihovu dostupnost.
+
+Distribuirani je sustav zato što se radi o više poslužitelja sa raznolikim zadatcima kojima korisnici pristupaju, te su raspoređeni ovisno o zauzeću ostalih poslužitelja.
 
 ## Rad aplikacije
 Kako bi postojao smisao load balancera, potrebno je odrediti sto ce workeri aplikacije raditi.
