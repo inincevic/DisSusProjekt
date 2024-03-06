@@ -15,7 +15,7 @@ async def contact_server():
 
 # Route confirming that the worker is still available
 @app.get("/check_in")
-def test_get():
+def check_in():
     return "This worker is still available."
 
 # Test route

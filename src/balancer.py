@@ -47,7 +47,7 @@ async def is_worker_available():
         print("Updated the list of available workers")
         print(workers)
         print("------------------------------------")
-        await asyncio.sleep(15)
+        await asyncio.sleep(60)
 
 # Route on which the workers register in the load balancer
 @app.get("/register_worker/{port}")
@@ -55,9 +55,10 @@ def new_worker(request: fastapi.Request, port):
     client_ip = request.client.host
     client_port = port
 
-    print(f"Request from {client_ip}:{client_port}")
+    # Prints out from which IP and which Port the registration request came from. Used for testing
+    # print(f"Request from {client_ip}:{client_port}")
 
-    worker_name = "worker" + str(len(workers))
+    worker_name = "worker" + str(client_port)
     workers.append({
         "worker": worker_name,
         "port": str(client_port),
