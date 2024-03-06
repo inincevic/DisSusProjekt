@@ -40,7 +40,7 @@ async def contact_worker(port, message):
     url = "http://127.0.0.1:" + port_str + "/do_work/" + message
     print(url)
     async with httpx.AsyncClient() as client:
-        response = await client.get(url)
+        response = await client.get(url, timeout = 25)
         return json.loads(response.text)
 
 
