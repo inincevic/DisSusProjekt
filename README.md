@@ -13,6 +13,9 @@ Distribuirani je sustav zato što se radi o više poslužitelja sa raznolikim za
 - Failover
 - Neki actual task
 
+## Ideja za posao workera
+Ili nekakve statisticke operacije ili operacije sa datotekama.
+
 
 ## Rad aplikacije
 Kako bi postojao smisao load balancera, potrebno je odrediti sto ce workeri aplikacije raditi.
