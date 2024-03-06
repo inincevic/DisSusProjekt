@@ -7,6 +7,13 @@ Radne stanice, ili serveri, kojima load balancer šalje korisnike sami će se re
 
 Distribuirani je sustav zato što se radi o više poslužitelja sa raznolikim zadatcima kojima korisnici pristupaju, te su raspoređeni ovisno o zauzeću ostalih poslužitelja.
 
+## Progress zadatka
+- Workeri se sami registriraju :check_mark:
+- Load balancer provjerava njihovu dostupnost :check_mark:
+- Failover
+- Neki actual task
+
+
 ## Rad aplikacije
 Kako bi postojao smisao load balancera, potrebno je odrediti sto ce workeri aplikacije raditi.
 Kako bi se smanjilo kompliciranje i kolicina rada provedenog na workerima, workeri ce, barem za sada biti zauzeti i cekati 20s ~~4.5s~~ prije davanja odgovora i oslobadjanja.
