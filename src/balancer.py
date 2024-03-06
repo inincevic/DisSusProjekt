@@ -1,21 +1,53 @@
-import fastapi
+import fastapi, httpx, json, asyncio
 
 app = fastapi.FastAPI()
-import httpx
-import json
 
 # List of all available workers
 workers = [] 
+
+# All events that are created on startup
+@app.on_event("startup")
+async def start_periodic_task():
+    # Empty the list of a vailable workers
+    global workers
+    workers = []
+
+    # Continual task that check if the workers in the list are still available
+    task = asyncio.create_task(is_worker_available())
 
 # Test route
 @app.get("/")
 def test_get():
     return "The code works."
 
-# Route for checking all available servers
+# Route for listing all available servers
 @app.get("/available_workers")
 def available():
     return workers
+
+# Task code that periodically tests which of the workers are available
+async def is_worker_available():
+    global workers
+    while True:
+        updated_workers = []
+        for worker in workers:
+            try:
+                port_str = worker["port"]
+                url = "http://127.0.0.1:" + port_str + "/check_in"
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(url)
+            except httpx.ReadTimeout:
+                print(f"Worker {worker['worker']} did not reply. Removing from the list of available workers.")
+                continue
+            except httpx.ConnectError:
+                print(f"Worker {worker['worker']} did not reply. Removing from the list of available workers.")
+                continue
+            updated_workers.append(worker)
+        workers = updated_workers
+        print("Updated the list of available workers")
+        print(workers)
+        print("------------------------------------")
+        await asyncio.sleep(15)
 
 # Route on which the workers register in the load balancer
 @app.get("/register_worker/{port}")
