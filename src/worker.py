@@ -13,6 +13,11 @@ async def contact_server():
         response = await client.get("http://127.0.0.1:8000/register_worker/" + str(port))
         return json.loads(response.text)
 
+# Route confirming that the worker is still available
+@app.get("/check_in")
+def check_in():
+    return "This worker is still available."
+
 # Test route
 @app.get("/")
 def test_get():
