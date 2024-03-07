@@ -77,7 +77,7 @@ async def is_worker_available():
 # While not useful yet, this will be used when sending work to multiple workers is implemented.
 
 # Method for sending to /do_work/ route where the message is just inverted after sleeping.
-async def contact_worker(port, message):
+async def sleep_work(port, message):
     port_str = str(port)
     url = "http://127.0.0.1:" + port_str + "/do_work/" + message
     print(url)
@@ -85,15 +85,51 @@ async def contact_worker(port, message):
         response = await client.get(url, timeout = 25)
         return json.loads(response.text)
 
+# Method which requests the contents of the file from the workers
+async def get_file_contents(port):
+    port_str = str(port)
+    url = "http://127.0.0.1:" + port_str + "/read_from_file"
+    print(url)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, timeout = 25)
+        return json.loads(response.text)
+
+# Method for sending messages to workers, these messages need to be written into the file they colectivelly work on
+async def write_message(port, message):
+    port_str = str(port)
+    url = "http://127.0.0.1:" + port_str + "/write_to_file/" + message
+    print(url)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, timeout = 25)
+        return json.loads(response.text)
+
+
 
 # -----------------------------------------------------------------------------------
 # Routes which send different tasks to workers.
-@app.get("/send_work/{message}")
+
+# Route which sends a message to the worker and expects the reversed message back after a certain 
+# period of sleep on the workier
+@app.get("/send_sleep/{message}")
 async def send_work(message):
-    print(f"Given message is: {message}.")
-    ret_msg = await contact_worker(8001, message)
+    # Print used for test purposes
+    #print(f"Given message is: {message}.")
+    ret_msg = await sleep_work(8001, message)
     return ret_msg
 
+# Route for reading the contents of the file all workers write into
+@app.get("/show_file")
+async def show_file():
+    file_contents = await get_file_contents(8001)
+    return file_contents
+
+# Route for sending messages to workers. These messages need to be written into the file
+@app.get("/write_message/{message}")
+async def send_work(message):
+    # Print used for test purposes
+    #print(f"Given message is: {message}.")
+    ret_msg = await write_message(8001, message)
+    return ret_msg
 
 
 # -----------------------------------------------------------------------------------
