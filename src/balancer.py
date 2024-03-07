@@ -20,34 +20,10 @@ async def start_periodic_task():
 def test_get():
     return "The code works."
 
-# Route for listing all available servers
+# Route for listing all available workers
 @app.get("/available_workers")
 def available():
     return workers
-
-# Task code that periodically tests which of the workers are available
-async def is_worker_available():
-    global workers
-    while True:
-        updated_workers = []
-        for worker in workers:
-            try:
-                port_str = worker["port"]
-                url = "http://127.0.0.0:" + port_str + "/check_in"
-                async with httpx.AsyncClient() as client:
-                    response = await client.get(url)
-            except httpx.ReadTimeout:
-                print(f"Worker {worker['worker']} did not reply. Removing from the list of available workers.")
-                continue
-            except httpx.ConnectError:
-                print(f"Worker {worker['worker']} did not reply. Removing from the list of available workers.")
-                continue
-            updated_workers.append(worker)
-        workers = updated_workers
-        print("Updated the list of available workers")
-        print(workers)
-        print("---------------HAHAHAH NOOOB---------------------")
-        await asyncio.sleep(60)
 
 # Route on which the workers register in the load balancer
 @app.get("/register_worker/{port}")
@@ -67,7 +43,40 @@ def new_worker(request: fastapi.Request, port):
     })
     return 201
 
-# Function which connects to a different code
+# Task code that periodically tests if all the workers are still available
+# Workers who aren't available are removed from the list
+async def is_worker_available():
+    global workers
+    while True:
+        updated_workers = []
+
+        # For each worker who contacted the balancer and was registered,
+        # the code checks if the worker is still available by contacting
+        # them using a specialized route.
+        for worker in workers:
+            try:
+                port_str = worker["port"]
+                url = "http://127.0.0.1:" + port_str + "/check_in"
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(url)
+            except httpx.ReadTimeout:
+                print(f"Worker {worker['worker']} did not reply. Removing from the list of available workers.")
+                continue
+            except httpx.ConnectError:
+                print(f"Worker {worker['worker']} did not reply. Removing from the list of available workers.")
+                continue
+            updated_workers.append(worker)
+        workers = updated_workers
+        print("Updated the list of available workers")
+        print(workers)
+        print("------------------------------------")
+        await asyncio.sleep(60)
+
+# ----------------------------------------------------------------------------------- 
+# Methods which send specific tasks to different workers depending on their ports
+# While not useful yet, this will be used when sending work to multiple workers is implemented.
+
+# Method for sending to /do_work/ route where the message is just inverted after sleeping.
 async def contact_worker(port, message):
     port_str = str(port)
     url = "http://127.0.0.1:" + port_str + "/do_work/" + message
@@ -77,9 +86,15 @@ async def contact_worker(port, message):
         return json.loads(response.text)
 
 
-# Ruta which sends tasks to the worker
+# -----------------------------------------------------------------------------------
+# Routes which send different tasks to workers.
 @app.get("/send_work/{message}")
 async def send_work(message):
     print(f"Given message is: {message}.")
     ret_msg = await contact_worker(8001, message)
     return ret_msg
+
+
+
+# -----------------------------------------------------------------------------------
+# Code for deciding which worker should recieve the next task.
