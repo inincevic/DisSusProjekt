@@ -5,7 +5,7 @@ app = fastapi.FastAPI()
 # List of all available workers
 workers = [] 
 
-# All events that are created on startup
+# Startup tasks
 @app.on_event("startup")
 async def start_periodic_task():
     # Empty the list of a vailable workers
@@ -33,7 +33,7 @@ async def is_worker_available():
         for worker in workers:
             try:
                 port_str = worker["port"]
-                url = "http://127.0.0.1:" + port_str + "/check_in"
+                url = "http://127.0.0.0:" + port_str + "/check_in"
                 async with httpx.AsyncClient() as client:
                     response = await client.get(url)
             except httpx.ReadTimeout:
@@ -46,7 +46,7 @@ async def is_worker_available():
         workers = updated_workers
         print("Updated the list of available workers")
         print(workers)
-        print("------------------------------------")
+        print("---------------HAHAHAH NOOOB---------------------")
         await asyncio.sleep(60)
 
 # Route on which the workers register in the load balancer

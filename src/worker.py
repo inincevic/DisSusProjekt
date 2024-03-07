@@ -14,12 +14,12 @@ async def contact_server():
         print(port)
         response = await client.get("http://127.0.0.1:8000/register_worker/" + str(port))
         return json.loads(response.text)
+    
+# Startup event that checks if the file for writing exists, and creates it if it doesn't
 @app.on_event("startup")
 async def open_write_file():
-    # This part of code will prepare the file for work
     if not os.path.exists(write_file_name):
         with open(write_file_name, 'w') as write_file:
-            #write_file.write(f"Log file created on {datetime.now()}\n")
             print(f"File {write_file_name} created.")
 
 # Route confirming that the worker is still available
