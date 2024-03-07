@@ -11,10 +11,17 @@ Distribuirani je sustav zato što se radi o više poslužitelja sa raznolikim za
 - Workeri se sami registriraju :check_mark:
 - Load balancer provjerava njihovu dostupnost :check_mark:
 - Failover
-- Neki actual task
+- Neki actual task :check_mark:
 
-## Ideja za posao workera
-Ili nekakve statisticke operacije ili operacije sa datotekama.
+~~## Ideja za posao workera~~
+~~Ili nekakve statisticke operacije ili operacije sa datotekama.~~
+## Zadan posao workera
+Svaki worker ima mogucnost pisanja u datoteku kojoj svi workeri imaju pristup.
+Ta datoteka zove se write_file.txt.
+Svaki worker koji se pokrene provjerava postoji li vec datoteka, te ako ne postoji, workeri imaju mogucnost kreirati datoteku.
+
+Postoje dvije rute za svrhu rada workera: ruta za pisanje u datoteku i ruta za citanje iz datoteke.
+S ovim zadatcima simulira se rad neke kompleksnije aplikacije, i uzima se vrijeme.
 
 
 ## Rad aplikacije
