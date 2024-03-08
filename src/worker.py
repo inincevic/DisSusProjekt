@@ -1,4 +1,4 @@
-import fastapi, time, httpx, sys, json, os
+import fastapi, time, httpx, sys, json, os, subprocess, asyncio
 
 app = fastapi.FastAPI()
 write_file_name = "./write_file.txt"
@@ -13,7 +13,11 @@ async def contact_server():
             port = int(sys.argv[index + 1])
         print(port)
         response = await client.get("http://127.0.0.1:8000/register_worker/" + str(port))
+        
+        ###newly added
+        task = asyncio.create_task(is_balancer_online())
         return json.loads(response.text)
+
     
 # Startup event that checks if the file for writing exists, and creates it if it doesn't
 @app.on_event("startup")
@@ -101,14 +105,24 @@ async def is_balancer_online():
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get("http://127.0.0.1/worker_ping")
+                print(response)
                 updated_worker_list = response
         except httpx.ReadTimeout:
             print(f"The balancer didn't reply, attempting to reboot.")
+            command = ["python", "-m", "uvicorn", "balancer:app", "--reload", "--port", "8000"]
+
+            # Run the command
+            subprocess.run(command)
             
         except httpx.ConnectError:
             print(f"The balancer didn't reply, attempting to reboot.")
+            command = ["python", "-m", "uvicorn", "balancer:app", "--reload", "--port", "8000"]
+
+            # Run the command
+            subprocess.run(command)
         
         balancer_registered_workers = updated_worker_list
+        await asyncio.sleep(60)
 
     while True:
         updated_workers = []

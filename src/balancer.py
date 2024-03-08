@@ -15,6 +15,9 @@ async def start_periodic_task():
     # Continual task that check if the workers in the list are still available
     task = asyncio.create_task(is_worker_available())
 
+
+# Management Routes
+
 # Test route
 @app.get("/")
 def test_get():
@@ -42,6 +45,16 @@ def new_worker(request: fastapi.Request, port):
         "total_tasks_done": 0
     })
     return 201
+
+# Route for sharing the current list of available workers with the workers
+# when they check if the balancer is still online
+@app.get("/worker_ping")
+async def worker_ping():
+    global workers
+
+    print("A worker has checked in")
+    return workers
+
 
 # Task code that periodically tests if all the workers are still available
 # Workers who aren't available are removed from the list
