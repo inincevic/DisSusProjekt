@@ -1,4 +1,4 @@
-import fastapi, httpx, json, asyncio
+import fastapi, httpx, json, asyncio, random
 
 app = fastapi.FastAPI()
 
@@ -134,3 +134,36 @@ async def send_work(message):
 
 # -----------------------------------------------------------------------------------
 # Code for deciding which worker should recieve the next task.
+
+async def choose_worker():
+    lowest_number_of_tasks = workers[1]["running"]
+    lowest_running = workers[1]["worker"]
+    all_equal_flag = True
+
+    for worker in workers:
+        if(worker["running"] < lowest_number_of_tasks):
+            lowest_number_of_tasks = worker["running"]
+            lowest_running = worker["worker"]
+            all_equal_flag = False
+        elif(worker["running"] == lowest_number_of_tasks):
+            all_equal_flag = False
+    
+    if all_equal_flag:
+        random_worker = random.choice(workers)
+        return random_worker["worker"] 
+
+    print(lowest_running)
+    return lowest_running
+
+'''
+Thought process:
+- in order to choose the next best worker, we need some criteria to choose by
+- the best criteria  in order to choose this is the number of  currently preforming tasks
+- which means that I need to count active tasks
+- in order to do that, I can use the "running" field in each of the workers
+- so at the start of each of the tasks, the "running" argument needs to be increased
+- and at the end of each task, the "running" argument needs to be decreased
+
+- with this in mind, the next chosen worker should be the one with the least number of running tasks
+- if they all have the same number of tasks running, they should be chosen by random
+'''
