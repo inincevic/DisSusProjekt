@@ -77,30 +77,48 @@ async def is_worker_available():
 # While not useful yet, this will be used when sending work to multiple workers is implemented.
 
 # Method for sending to /do_work/ route where the message is just inverted after sleeping.
-async def sleep_work(port, message):
-    port_str = str(port)
-    url = "http://127.0.0.1:" + port_str + "/do_work/" + message
+async def sleep_work(message):
+    task_worker = await choose_worker()
+    port = task_worker["port"]
+    print(f"Working on port {port}")
+    
+    url = "http://127.0.0.1:" + port + "/do_work/" + message
     print(url)
     async with httpx.AsyncClient() as client:
+        task_worker["running"] += 1
         response = await client.get(url, timeout = 25)
+        task_worker["running"] -= 1
+        task_worker["total_tasks_done"] += 1
         return json.loads(response.text)
 
 # Method which requests the contents of the file from the workers
-async def get_file_contents(port):
-    port_str = str(port)
-    url = "http://127.0.0.1:" + port_str + "/read_from_file"
+async def get_file_contents():
+    task_worker = await choose_worker()
+    port = task_worker["port"]
+    print(f"Working on port {port}")
+
+    url = "http://127.0.0.1:" + port + "/read_from_file"
     print(url)
     async with httpx.AsyncClient() as client:
+        task_worker["running"] += 1
         response = await client.get(url, timeout = 25)
+        task_worker["running"] -= 1
+        task_worker["total_tasks_done"] += 1
         return json.loads(response.text)
 
 # Method for sending messages to workers, these messages need to be written into the file they colectivelly work on
-async def write_message(port, message):
-    port_str = str(port)
-    url = "http://127.0.0.1:" + port_str + "/write_to_file/" + message
+async def write_message(message):
+    task_worker = await choose_worker()
+    port = task_worker["port"]
+    print(f"Working on port {port}")
+
+    url = "http://127.0.0.1:" + port + "/write_to_file/" + message
     print(url)
     async with httpx.AsyncClient() as client:
+        task_worker["running"] += 1
         response = await client.get(url, timeout = 25)
+        task_worker["running"] -= 1
+        task_worker["total_tasks_done"] += 1
         return json.loads(response.text)
 
 
@@ -114,13 +132,13 @@ async def write_message(port, message):
 async def send_work(message):
     # Print used for test purposes
     #print(f"Given message is: {message}.")
-    ret_msg = await sleep_work(8001, message)
+    ret_msg = await sleep_work(message)
     return ret_msg
 
 # Route for reading the contents of the file all workers write into
 @app.get("/show_file")
 async def show_file():
-    file_contents = await get_file_contents(8001)
+    file_contents = await get_file_contents()
     return file_contents
 
 # Route for sending messages to workers. These messages need to be written into the file
@@ -128,7 +146,7 @@ async def show_file():
 async def send_work(message):
     # Print used for test purposes
     #print(f"Given message is: {message}.")
-    ret_msg = await write_message(8001, message)
+    ret_msg = await write_message(message)
     return ret_msg
 
 
@@ -136,21 +154,21 @@ async def send_work(message):
 # Code for deciding which worker should recieve the next task.
 
 async def choose_worker():
-    lowest_number_of_tasks = workers[1]["running"]
-    lowest_running = workers[1]["worker"]
+    lowest_number_of_tasks = workers[0]["running"]
+    lowest_running = workers[0]
     all_equal_flag = True
 
     for worker in workers:
         if(worker["running"] < lowest_number_of_tasks):
             lowest_number_of_tasks = worker["running"]
-            lowest_running = worker["worker"]
+            lowest_running = worker
             all_equal_flag = False
         elif(worker["running"] == lowest_number_of_tasks):
             all_equal_flag = False
     
     if all_equal_flag:
         random_worker = random.choice(workers)
-        return random_worker["worker"] 
+        return random_worker 
 
     print(lowest_running)
     return lowest_running
