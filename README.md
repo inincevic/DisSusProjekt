@@ -29,6 +29,8 @@ Kako bi postojao smisao load balancera, potrebno je odrediti sto ce workeri apli
 Kako bi se smanjilo kompliciranje i kolicina rada provedenog na workerima, workeri ce, barem za sada biti zauzeti i cekati 20s ~~4.5s~~ prije davanja odgovora i oslobadjanja.
 ~~Vrijeme cetanja je smanjeno sa 20 sekundi na 4.5 sekunde usljed provlema sa fastAPI timeoutom.~~ Uspjesno rjesen problem sa timeoutom.
 
+Kako bi aplikacija imala nekakve realne primjene, dodane su dvije nove operacije koje workeri mogu raditi: pisanje i citanje iz .txt datoteke.
+
 ## Pokretanje load balancera
 Unutar ./src/ potrebno je pokreniti slijedecu naredbu
 > python -m uvicorn balancer:app --reload
