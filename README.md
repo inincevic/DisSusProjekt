@@ -31,11 +31,19 @@ Kako bi se smanjilo kompliciranje i kolicina rada provedenog na workerima, worke
 
 Kako bi aplikacija imala nekakve realne primjene, dodane su dvije nove operacije koje workeri mogu raditi: pisanje i citanje iz .txt datoteke.
 
-## Pokretanje load balancera
+## Failover
+Kako bi se omogucio failover, u slucaju prestanka rada balancera, svaki worker je sposoban ponovno pokrenuti load balancer.
+Jedna stvar koja jos nije implementirana je nacin odlucivanja workera koji pokrece load balancer. **WORK IN PROGRESS**
+
+Kako bi se omogucilo provjeravanje jesu li workeri jos uvijek pokrenuti, load balancer ima metodu koja svaki period vremena provjerava da li su svi registrirani workeri jos uvijek dostupni.
+
+## Pokretanje sustava
+
+### Pokretanje load balancera
 Unutar ./src/ potrebno je pokreniti slijedece naredbe
 > python -m uvicorn balancer:app --reload
 
-## Pokretanje workera
+### Pokretanje workera
 S obzirom na broj worker-a, potrebno je odrediti nekoliko portova na kojima ce se ti workeri pokretati.
 Za odredjivanje porta na kojem ce se pokretati worker, koristimo slijedecu naredbu unutar ./src/
 > python -m uvicorn worker:app --reload --port X

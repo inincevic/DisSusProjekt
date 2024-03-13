@@ -116,8 +116,8 @@ async def is_balancer_online():
             command = ["python", "-m", "uvicorn", "balancer:app", "--reload", "--port", "8000"]
 
             # Run the command
-            subprocess.run(command)
-            asyncio.sleep(5)
+            balancer = subprocess.Popen(command)
+            await asyncio.sleep(5)
             response = await contact_server()
             continue
             
@@ -126,8 +126,8 @@ async def is_balancer_online():
             command = ["python", "-m", "uvicorn", "balancer:app", "--reload", "--port", "8000"]
 
             # Run the command
-            subprocess.run(command)
-            asyncio.sleep(5)
+            balancer = subprocess.Popen(command)
+            await asyncio.sleep(5)
             response = await contact_server()
             continue
         
