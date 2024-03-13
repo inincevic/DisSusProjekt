@@ -230,8 +230,8 @@ async def check_on_main():
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get("http://127.0.0.1:8000/balancer_working", timeout = 25)
-                print(response)
-                updated_worker_list = response
+                print(response.json())
+                updated_worker_list = response.json()
         
         # WIP
         except httpx.ReadTimeout:
