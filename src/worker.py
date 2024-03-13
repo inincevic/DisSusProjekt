@@ -16,8 +16,8 @@ async def contact_server():
         response = await client.get("http://127.0.0.1:8000/register_worker/" + str(port))
         
         # ###newly added
-        # task = asyncio.create_task(is_balancer_online())
-        # return json.loads(response.text)
+        task = asyncio.create_task(is_balancer_online())
+        return json.loads(response.text)
         return 200
 
     
@@ -108,7 +108,7 @@ async def is_balancer_online():
     while True:
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get("http://127.0.0.1:8000/balancer_working")
+                response = await client.get("http://127.0.0.1:8000/balancer_working", timeout = 25)
                 print(response.json())
                 updated_worker_list = response.json()
 
@@ -118,6 +118,8 @@ async def is_balancer_online():
 
             # Run the command
             subprocess.run(command)
+            asyncio.sleep(5)
+            contact_server()
             continue
             
         except httpx.ConnectError:
@@ -126,7 +128,10 @@ async def is_balancer_online():
 
             # Run the command
             subprocess.run(command)
+            asyncio.sleep(5)
+            contact_server()
             continue
         
         balancer_registered_workers = updated_worker_list
+        print(balancer_registered_workers)
         await asyncio.sleep(60)

@@ -4,28 +4,19 @@ app = fastapi.FastAPI()
 
 # List of all available workers
 workers = []
-port = 0
 
 # Startup tasks
 @app.on_event("startup")
 async def start_periodic_task():
     global workers
-    global port
 
     # Empty the list of a vailable workers
     workers = []
     
-    # Depending on the port on which the balancer is running, a different continual task will be started
-    port = port_check()
     # Continual task that check if the workers in the list are still available
-    if port == 8000:
-        task = asyncio.create_task(is_worker_available())
-    # Continual task that check if the the main balancer is still available
-    elif port == 7999:
-        task = asyncio.create_task(check_on_main())
-        ...
-
-
+    task = asyncio.create_task(is_worker_available())
+    
+# -----------------------------------------------------------------------
 # Management Routes
 
 # Test route
@@ -85,6 +76,16 @@ async def is_worker_available():
         print(workers)
         print("------------------------------------")
         await asyncio.sleep(60)
+
+
+# Route for sharing the current list of available workers with the workers
+# when they check if the balancer is still online
+@app.get("/balancer_working")
+async def balancer_working():
+    global workers
+    print("A worker has checked in on the health of this balancer.")
+    return workers
+
 
 # ----------------------------------------------------------------------------------- 
 # Methods which send specific tasks to different workers depending on their ports
@@ -199,64 +200,3 @@ Thought process:
 - with this in mind, the next chosen worker should be the one with the least number of running tasks
 - if they all have the same number of tasks running, they should be chosen by random
 '''
-
-
-# -------------------------------------------------------------------------------------------------------
-# Code for ensuring that the balancer is always running.
-# Decided upon mode of working.
-# Two balancers will be running at the same time, one on the default port of 8000
-# the other will be on the port 7999 and constantly checking on the main balancer.
-# IF the main balancer does not reply, the secondary balancer will switch it's port to 8000
-# and then try to reboot the first balancer on the port 7999
-
-# Method for taking the port argument and printing it out
-def port_check():
-    if "--port" in sys.argv:
-        index = sys.argv.index("--port")
-        port = int(sys.argv[index + 1])
-        print(port)
-        return port
-    
-# Route for sharing the current list of available workers with the workers
-# when they check if the balancer is still online
-@app.get("/balancer_working")
-async def balancer_working():
-    global workers
-    print("Backup balancer has checked in on the health of this balancer.")
-    return workers
-
-# Method that makes sure that the main balancer at port 8000 is running
-async def check_on_main():
-    global workers
-    global port
-    updated_worker_list = workers
-
-    while True:
-        print("Pinging main balancer")
-
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get("http://127.0.0.1:8000/balancer_working", timeout = 25)
-                print(response.json())
-                updated_worker_list = response.json()
-        
-        # WIP
-        except httpx.ReadTimeout:
-            print(f"The balancer didn't reply, attempting to reboot.")
-            command = ["python", "-m", "uvicorn", "balancer:app", "--reload", "--port", "8000"]
-
-            subprocess.run(command)
-
-            continue
-                
-        except httpx.ConnectError:
-            print(f"The balancer didn't reply, attempting to reboot.")
-            command = ["python", "-m", "uvicorn", "balancer:app", "--reload", "--port", "8000"]
-
-            subprocess.run(command)
-            continue
-
-        workers = updated_worker_list
-        print(workers)
-        await asyncio.sleep(60)
-    ...
