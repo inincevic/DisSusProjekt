@@ -32,8 +32,10 @@ Kako bi se smanjilo kompliciranje i kolicina rada provedenog na workerima, worke
 Kako bi aplikacija imala nekakve realne primjene, dodane su dvije nove operacije koje workeri mogu raditi: pisanje i citanje iz .txt datoteke.
 
 ## Pokretanje load balancera
-Unutar ./src/ potrebno je pokreniti slijedecu naredbu
-> python -m uvicorn balancer:app --reload
+Unutar ./src/ potrebno je pokreniti slijedece naredbe
+> python -m uvicorn balancer:app --reload --port 8000
+Te unutar drugog terminala
+> python -m uvicorn balancer:app --reload --port 7999
 
 ## Pokretanje workera
 S obzirom na broj worker-a, potrebno je odrediti nekoliko portova na kojima ce se ti workeri pokretati.

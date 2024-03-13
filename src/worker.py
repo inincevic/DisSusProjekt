@@ -12,11 +12,13 @@ async def contact_server():
             index = sys.argv.index("--port")
             port = int(sys.argv[index + 1])
         print(port)
+        print("Registered on the balancer")
         response = await client.get("http://127.0.0.1:8000/register_worker/" + str(port))
         
-        ###newly added
-        task = asyncio.create_task(is_balancer_online())
-        return json.loads(response.text)
+        # ###newly added
+        # task = asyncio.create_task(is_balancer_online())
+        # return json.loads(response.text)
+        return 200
 
     
 # Startup event that checks if the file for writing exists, and creates it if it doesn't
@@ -88,6 +90,8 @@ def read_from_file():
     return lines
 
 
+
+#### TO DELETE
 # This code checks if the balancer is still available.
 # The code starts after the worker registers with the load balancer and every minute after that, the worker checks if the balancer is still available.
 # If the balancer is not available, the worker will try to start the balancer back up, thus giving it a failover
@@ -107,6 +111,7 @@ async def is_balancer_online():
                 response = await client.get("http://127.0.0.1/worker_ping")
                 print(response)
                 updated_worker_list = response
+
         except httpx.ReadTimeout:
             print(f"The balancer didn't reply, attempting to reboot.")
             command = ["python", "-m", "uvicorn", "balancer:app", "--reload", "--port", "8000"]
@@ -123,28 +128,3 @@ async def is_balancer_online():
         
         balancer_registered_workers = updated_worker_list
         await asyncio.sleep(60)
-
-    while True:
-        updated_workers = []
-
-        # For each worker who contacted the balancer and was registered,
-        # the code checks if the worker is still available by contacting
-        # them using a specialized route.
-        for worker in workers:
-            try:
-                port_str = worker["port"]
-                url = "http://127.0.0.1:" + port_str + "/check_in"
-                async with httpx.AsyncClient() as client:
-                    response = await client.get(url)
-            except httpx.ReadTimeout:
-                print(f"Worker {worker['worker']} did not reply. Removing from the list of available workers.")
-                continue
-            except httpx.ConnectError:
-                print(f"Worker {worker['worker']} did not reply. Removing from the list of available workers.")
-                continue
-            updated_workers.append(worker)
-        workers = updated_workers
-        print("Updated the list of available workers")
-        print(workers)
-        print("------------------------------------")
-        await asyncio.sleep(60) 
