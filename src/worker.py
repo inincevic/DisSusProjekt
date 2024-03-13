@@ -91,10 +91,9 @@ def read_from_file():
 
 
 
-#### TO DELETE
 # This code checks if the balancer is still available.
 # The code starts after the worker registers with the load balancer and every minute after that, the worker checks if the balancer is still available.
-# If the balancer is not available, the worker will try to start the balancer back up, thus giving it a failover
+# If the balancer is not available, the worker will try to start the balancer back up, thus giving it a failover and re-registering afterwards.
 # In order to prevent multiple balancers being booted up on the same port, only the worker with the lowest port will preform the boot up.
 balancer_registered_workers = []
 
@@ -119,7 +118,7 @@ async def is_balancer_online():
             # Run the command
             subprocess.run(command)
             asyncio.sleep(5)
-            contact_server()
+            response = await contact_server()
             continue
             
         except httpx.ConnectError:
@@ -129,7 +128,7 @@ async def is_balancer_online():
             # Run the command
             subprocess.run(command)
             asyncio.sleep(5)
-            contact_server()
+            response = await contact_server()
             continue
         
         balancer_registered_workers = updated_worker_list

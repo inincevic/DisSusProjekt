@@ -33,9 +33,7 @@ Kako bi aplikacija imala nekakve realne primjene, dodane su dvije nove operacije
 
 ## Pokretanje load balancera
 Unutar ./src/ potrebno je pokreniti slijedece naredbe
-> python -m uvicorn balancer:app --reload --port 8000
-Te unutar drugog terminala
-> python -m uvicorn balancer:app --reload --port 7999
+> python -m uvicorn balancer:app --reload
 
 ## Pokretanje workera
 S obzirom na broj worker-a, potrebno je odrediti nekoliko portova na kojima ce se ti workeri pokretati.
