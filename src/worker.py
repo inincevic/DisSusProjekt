@@ -108,9 +108,9 @@ async def is_balancer_online():
     while True:
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get("http://127.0.0.1/worker_ping")
-                print(response)
-                updated_worker_list = response
+                response = await client.get("http://127.0.0.1:8000/balancer_working")
+                print(response.json())
+                updated_worker_list = response.json()
 
         except httpx.ReadTimeout:
             print(f"The balancer didn't reply, attempting to reboot.")
@@ -118,6 +118,7 @@ async def is_balancer_online():
 
             # Run the command
             subprocess.run(command)
+            continue
             
         except httpx.ConnectError:
             print(f"The balancer didn't reply, attempting to reboot.")
@@ -125,6 +126,7 @@ async def is_balancer_online():
 
             # Run the command
             subprocess.run(command)
+            continue
         
         balancer_registered_workers = updated_worker_list
         await asyncio.sleep(60)

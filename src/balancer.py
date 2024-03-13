@@ -1,20 +1,26 @@
-import fastapi, httpx, json, asyncio, random, sys
+import fastapi, httpx, json, asyncio, random, sys, subprocess
 
 app = fastapi.FastAPI()
 
 # List of all available workers
-workers = [] 
+workers = []
+port = 0
 
 # Startup tasks
 @app.on_event("startup")
 async def start_periodic_task():
-    # Empty the list of a vailable workers
     global workers
+    global port
+
+    # Empty the list of a vailable workers
     workers = []
+    
+    # Depending on the port on which the balancer is running, a different continual task will be started
     port = port_check()
     # Continual task that check if the workers in the list are still available
     if port == 8000:
         task = asyncio.create_task(is_worker_available())
+    # Continual task that check if the the main balancer is still available
     elif port == 7999:
         task = asyncio.create_task(check_on_main())
         ...
@@ -222,6 +228,7 @@ async def balancer_working():
 # Method that makes sure that the main balancer at port 8000 is running
 async def check_on_main():
     global workers
+    global port
     updated_worker_list = workers
 
     while True:
@@ -237,10 +244,17 @@ async def check_on_main():
         except httpx.ReadTimeout:
             print(f"The balancer didn't reply, attempting to reboot.")
             command = ["python", "-m", "uvicorn", "balancer:app", "--reload", "--port", "8000"]
+
+            subprocess.run(command)
+
+            continue
                 
         except httpx.ConnectError:
             print(f"The balancer didn't reply, attempting to reboot.")
             command = ["python", "-m", "uvicorn", "balancer:app", "--reload", "--port", "8000"]
+
+            subprocess.run(command)
+            continue
 
         workers = updated_worker_list
         print(workers)
