@@ -1,5 +1,5 @@
 # DisSusProjekt
-Repozitorij u kojemu se nalazi projekt moj projekt za kolegij Raspodijeljeni sustavi. ~~ce biti moj projekt za kolegij Raspodijeljeni sustavi~~
+Repozitorij u kojemu se nalazi projekt moj projekt za kolegij Raspodijeljeni sustavi.
 
 ## Zadatak
 Generičan load balancer koji ima failover u slučaju prekida rada load balancera.
@@ -7,11 +7,6 @@ Radne stanice, ili serveri, kojima load balancer šalje korisnike sami će se re
 
 Distribuirani je sustav zato što se radi o više poslužitelja sa raznolikim zadatcima kojima korisnici pristupaju, te su raspoređeni ovisno o zauzeću ostalih poslužitelja.
 
-~~## Progress zadatka~~
-~~- Workeri se sami registriraju :check_mark:~~
-~~- Load balancer provjerava njihovu dostupnost :check_mark:~~
-~~- Failover :check_mark:~~
-~~- Neki actual task :check_mark:~~
 
 # Elementi projekta
 
@@ -45,6 +40,6 @@ Unutar ./src/ potrebno je pokreniti slijedeće naredbe
 ## Pokretanje workera
 S obzirom na broj worker-a, potrebno je odrediti portove na kojima će se ti workeri pokretati.
 Port korišten za pokretanje workera nikada ne smije biti 8000, zato što je to predodređeni port na kojemu se pokreće load balancer.
-Za pokretanje workera na određenom portu, koristimo slijedecu naredbu unutar ./src/ ~~odredjivanje porta na kojem ce se pokretati worker, koristimo slijedecu naredbu unutar ./src/~~
+Za pokretanje workera na određenom portu, koristimo slijedecu naredbu unutar ./src/
 > python -m uvicorn worker:app --reload --port X
 Gdje je X broj porta.
