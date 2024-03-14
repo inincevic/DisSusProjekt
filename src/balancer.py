@@ -10,12 +10,13 @@ workers = []
 async def start_periodic_task():
     global workers
 
-    # Empty the list of a vailable workers
+    # Empty the list of available workers when the balancer starts
     workers = []
     
     # Continual task that check if the workers in the list are still available
     task = asyncio.create_task(is_worker_available())
-    
+
+
 # -----------------------------------------------------------------------
 # Management Routes
 
@@ -71,10 +72,13 @@ async def is_worker_available():
                 print(f"Worker {worker['worker']} did not reply. Removing from the list of available workers.")
                 continue
             updated_workers.append(worker)
+
         workers = updated_workers
-        print("Updated the list of available workers")
-        print(workers)
-        print("------------------------------------")
+
+        # Prints that show what the list of workers after checking the connections looks like. Used in testing.
+        # print("Updated the list of available workers")
+        # print(workers)
+        # print("------------------------------------")
         await asyncio.sleep(60)
 
 
@@ -83,22 +87,25 @@ async def is_worker_available():
 @app.get("/balancer_working")
 async def balancer_working():
     global workers
-    print("A worker has checked in on the health of this balancer.")
+    # Print that confirms when a worker has checked if the balaancer is still online.
+    # print("A worker has checked in on the health of this balancer.")
     return workers
 
 
 # ----------------------------------------------------------------------------------- 
 # Methods which send specific tasks to different workers depending on their ports
-# While not useful yet, this will be used when sending work to multiple workers is implemented.
 
 # Method for sending to /do_work/ route where the message is just inverted after sleeping.
 async def sleep_work(message):
     task_worker = await choose_worker()
     port = task_worker["port"]
-    print(f"Working on port {port}")
+    # Print that confirms to which worker was the task sent.
+    # print(f"Working on port {port}")
     
     url = "http://127.0.0.1:" + port + "/do_work/" + message
-    print(url)
+    # Print that confirms the final URL on which the task will be sent. Used for testing purposes.
+    # print(url)
+    
     async with httpx.AsyncClient() as client:
         task_worker["running"] += 1
         response = await client.get(url, timeout = 25)
@@ -110,10 +117,13 @@ async def sleep_work(message):
 async def get_file_contents():
     task_worker = await choose_worker()
     port = task_worker["port"]
-    print(f"Working on port {port}")
+    # Print that confirms to which worker was the task sent.
+    # print(f"Working on port {port}")
 
     url = "http://127.0.0.1:" + port + "/read_from_file"
-    print(url)
+    # Print that confirms the final URL on which the task will be sent. Used for testing purposes.
+    # print(url)
+    
     async with httpx.AsyncClient() as client:
         task_worker["running"] += 1
         response = await client.get(url, timeout = 25)
@@ -125,10 +135,13 @@ async def get_file_contents():
 async def write_message(message):
     task_worker = await choose_worker()
     port = task_worker["port"]
-    print(f"Working on port {port}")
+    # Print that confirms to which worker was the task sent.
+    # print(f"Working on port {port}")
 
     url = "http://127.0.0.1:" + port + "/write_to_file/" + message
-    print(url)
+    # Print that confirms the final URL on which the task will be sent. Used for testing purposes.
+    # print(url)
+    
     async with httpx.AsyncClient() as client:
         task_worker["running"] += 1
         response = await client.get(url, timeout = 25)
@@ -146,7 +159,7 @@ async def write_message(message):
 @app.get("/send_sleep/{message}")
 async def send_work(message):
     # Print used for test purposes
-    #print(f"Given message is: {message}.")
+    # print(f"Given message is: {message}.")
     ret_msg = await sleep_work(message)
     return ret_msg
 
@@ -160,13 +173,25 @@ async def show_file():
 @app.get("/write_message/{message}")
 async def send_work(message):
     # Print used for test purposes
-    #print(f"Given message is: {message}.")
+    # print(f"Given message is: {message}.")
     ret_msg = await write_message(message)
     return ret_msg
 
 
 # -----------------------------------------------------------------------------------
 # Code for deciding which worker should recieve the next task.
+'''
+Thought process:
+- in order to choose the next best worker, we need some criteria to choose by
+- the best criteria  in order to choose this is the number of  currently preforming tasks
+- which means that I need to count active tasks
+- in order to do that, I can use the "running" field in each of the workers
+- so at the start of each of the tasks, the "running" argument needs to be increased
+- and at the end of each task, the "running" argument needs to be decreased
+
+- with this in mind, the next chosen worker should be the one with the least number of running tasks
+- if they all have the same number of tasks running, they should be chosen by random
+'''
 
 async def choose_worker():
     lowest_number_of_tasks = workers[0]["running"]
@@ -187,16 +212,3 @@ async def choose_worker():
 
     print(lowest_running)
     return lowest_running
-
-'''
-Thought process:
-- in order to choose the next best worker, we need some criteria to choose by
-- the best criteria  in order to choose this is the number of  currently preforming tasks
-- which means that I need to count active tasks
-- in order to do that, I can use the "running" field in each of the workers
-- so at the start of each of the tasks, the "running" argument needs to be increased
-- and at the end of each task, the "running" argument needs to be decreased
-
-- with this in mind, the next chosen worker should be the one with the least number of running tasks
-- if they all have the same number of tasks running, they should be chosen by random
-'''
