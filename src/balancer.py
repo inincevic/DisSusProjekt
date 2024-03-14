@@ -1,19 +1,23 @@
-import fastapi, httpx, json, asyncio, random
+import fastapi, httpx, json, asyncio, random, sys, subprocess
 
 app = fastapi.FastAPI()
 
 # List of all available workers
-workers = [] 
+workers = []
 
 # Startup tasks
 @app.on_event("startup")
 async def start_periodic_task():
-    # Empty the list of a vailable workers
     global workers
-    workers = []
 
+    # Empty the list of a vailable workers
+    workers = []
+    
     # Continual task that check if the workers in the list are still available
     task = asyncio.create_task(is_worker_available())
+    
+# -----------------------------------------------------------------------
+# Management Routes
 
 # Test route
 @app.get("/")
@@ -43,6 +47,7 @@ def new_worker(request: fastapi.Request, port):
     })
     return 201
 
+
 # Task code that periodically tests if all the workers are still available
 # Workers who aren't available are removed from the list
 async def is_worker_available():
@@ -71,6 +76,16 @@ async def is_worker_available():
         print(workers)
         print("------------------------------------")
         await asyncio.sleep(60)
+
+
+# Route for sharing the current list of available workers with the workers
+# when they check if the balancer is still online
+@app.get("/balancer_working")
+async def balancer_working():
+    global workers
+    print("A worker has checked in on the health of this balancer.")
+    return workers
+
 
 # ----------------------------------------------------------------------------------- 
 # Methods which send specific tasks to different workers depending on their ports

@@ -1,19 +1,27 @@
-import fastapi, time, httpx, sys, json, os
+import fastapi, time, httpx, sys, json, os, subprocess, asyncio
 
 app = fastapi.FastAPI()
 write_file_name = "./write_file.txt"
+port = 0
 
 
 # Startup event that contacts the balancer and registers the worker, with the port it is running on
 @app.on_event("startup")
 async def contact_server():
+    global port
     async with httpx.AsyncClient() as client:
         if "--port" in sys.argv:
             index = sys.argv.index("--port")
             port = int(sys.argv[index + 1])
         print(port)
+        print("Registered on the balancer")
         response = await client.get("http://127.0.0.1:8000/register_worker/" + str(port))
+        
+        # ###newly added
+        task = asyncio.create_task(is_balancer_online())
         return json.loads(response.text)
+        return 200
+
     
 # Startup event that checks if the file for writing exists, and creates it if it doesn't
 @app.on_event("startup")
@@ -82,3 +90,96 @@ def read_from_file():
     with open(write_file_name, "r") as file:
         lines = file.readlines()
     return lines
+
+
+
+# This code checks if the balancer is still available.
+# The code starts after the worker registers with the load balancer and every minute after that, the worker checks if the balancer is still available.
+# If the balancer is not available, the worker will try to start the balancer back up, thus giving it a failover and re-registering afterwards.
+# In order to prevent multiple balancers being booted up on the same port, only the worker with the lowest port will preform the boot up.
+balancer_registered_workers = []
+
+async def is_balancer_online():
+    # In order to know which worker should reboot the balancer, should it stop working
+    # the list of all workers which were registered on the balaancer
+    global balancer_registered_workers
+    updated_worker_list = []
+
+    # Task that periodically checks if the balancer is still online
+    while True:
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get("http://127.0.0.1:8000/balancer_working", timeout = 25)
+                print(response.json())
+                updated_worker_list = response.json()
+
+        except httpx.ReadTimeout:
+            print(f"The balancer didn't reply, attempting to reboot.")
+            command = ["python", "-m", "uvicorn", "balancer:app", "--reload", "--port", "8000"]
+
+            # The code first checks if it is the first worker registered on the balancer
+            first = await am_I_first()
+            print(f"in main after am I first, first is {first}")
+            # if the worker is the first registered on the balancer, then it reboots the balancer
+            # and after reboot re-registeres on the new balancer
+            if first:
+                balancer = subprocess.Popen(command)
+                await asyncio.sleep(5)
+                response = await contact_server()
+            
+            # If the worker isn't the first registered on the balancer, then it waits 5s 
+            # and then re-registers on the new balancer
+            elif first:
+                await asyncio.sleep(5)
+                response = await contact_server()
+
+            continue
+            
+        except httpx.ConnectError:
+            print(f"The balancer didn't reply, attempting to reboot.")
+            command = ["python", "-m", "uvicorn", "balancer:app", "--reload", "--port", "8000"]
+
+            # The code first checks if it is the first worker registered on the balancer
+            # and after reboot re-registeres on the new balancer
+            first = await am_I_first()
+
+            # If the worker isn't the first registered on the balancer, then it waits 5s 
+            # and then re-registers on the new balancer
+            if first:
+                balancer = subprocess.Popen(command)
+                await asyncio.sleep(5)
+                response = await contact_server()
+            
+            else:
+                await asyncio.sleep(5)
+                response = await contact_server()
+            
+            continue
+        
+        balancer_registered_workers = updated_worker_list
+        print(balancer_registered_workers)
+        await asyncio.sleep(10) # need to change back to 60
+
+# In order to make this plausible without implementing RAFT, I will be assuming
+# a single point of failure. To better explain, I will be assuming that either a
+# worker or the balancer will fail, never both.
+# The logic used here is: when a connection to the balancer fails, the worker will check if its port is the lowest
+# and if it is, that worker will be the one starting the balancer back up.
+# Otherwise, it will not do anything, but wait 10s and rerun the registration process.
+
+async def am_I_first():
+    global port
+
+    print("inside am I first")
+    am_I_first_bool = False
+    lowest_port = 10000
+    
+    for worker in balancer_registered_workers:
+        if int(worker["port"]) < lowest_port:
+            lowest_port = int(worker["port"])
+    
+    if port == lowest_port:
+        am_I_first_bool = True
+
+    print(f"Am I first bool is {am_I_first_bool}")
+    return am_I_first_bool
