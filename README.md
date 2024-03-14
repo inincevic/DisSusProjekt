@@ -1,5 +1,5 @@
 # DisSusProjekt
-Repozitorij u kojemu ce biti moj projekt za kolegij Raspodijeljeni sustavi
+Repozitorij u kojemu se nalazi projekt moj projekt za kolegij Raspodijeljeni sustavi. ~~ce biti moj projekt za kolegij Raspodijeljeni sustavi~~
 
 ## Zadatak
 Generičan load balancer koji ima failover u slučaju prekida rada load balancera.
@@ -7,44 +7,44 @@ Radne stanice, ili serveri, kojima load balancer šalje korisnike sami će se re
 
 Distribuirani je sustav zato što se radi o više poslužitelja sa raznolikim zadatcima kojima korisnici pristupaju, te su raspoređeni ovisno o zauzeću ostalih poslužitelja.
 
-## Progress zadatka
-- Workeri se sami registriraju :check_mark:
-- Load balancer provjerava njihovu dostupnost :check_mark:
-- Failover
-- Neki actual task :check_mark:
+~~## Progress zadatka~~
+~~- Workeri se sami registriraju :check_mark:~~
+~~- Load balancer provjerava njihovu dostupnost :check_mark:~~
+~~- Failover :check_mark:~~
+~~- Neki actual task :check_mark:~~
 
-~~## Ideja za posao workera~~
-~~Ili nekakve statisticke operacije ili operacije sa datotekama.~~
-## Zadan posao workera
+# Elementi projekta
+
+## Zadan posao workerima
 Svaki worker ima mogucnost pisanja u datoteku kojoj svi workeri imaju pristup.
 Ta datoteka zove se write_file.txt.
-Svaki worker koji se pokrene provjerava postoji li vec datoteka, te ako ne postoji, workeri imaju mogucnost kreirati datoteku.
+Svaki worker koji se pokrene provjerava postoji li već ta datoteka, te ako ne postoji, workeri imaju mogucnost kreirati tu datoteku.
 
-Postoje dvije rute za svrhu rada workera: ruta za pisanje u datoteku i ruta za citanje iz datoteke.
-S ovim zadatcima simulira se rad neke kompleksnije aplikacije, i uzima se vrijeme.
+Postoje dvije rute u svrhu rada workera: ruta za pisanje u datoteku i ruta za čitanje iz datoteke.
 
+Kako bi se moglo simulirati "zagušenje" sustava, te provjeriti kako load balancer šalje zadatke workerima napravljena je dodatna ruta koja ima u sebi jednostavniji zadatak okretanja poruke naopako i čekanja period vremena.
 
-## Rad aplikacije
-Kako bi postojao smisao load balancera, potrebno je odrediti sto ce workeri aplikacije raditi.
-Kako bi se smanjilo kompliciranje i kolicina rada provedenog na workerima, workeri ce, barem za sada biti zauzeti i cekati 20s ~~4.5s~~ prije davanja odgovora i oslobadjanja.
-~~Vrijeme cetanja je smanjeno sa 20 sekundi na 4.5 sekunde usljed provlema sa fastAPI timeoutom.~~ Uspjesno rjesen problem sa timeoutom.
+## Rad sustava ~~aplikacije~~
+Očekivanje ovog sustava je da je load balancer pokrenut prije ijednog workera.
 
-Kako bi aplikacija imala nekakve realne primjene, dodane su dvije nove operacije koje workeri mogu raditi: pisanje i citanje iz .txt datoteke.
+Prilikom pokretanja, workeri se automatski registriraju na load balanceru tako da load balancer može slati zadatke workerima bez vanjske intervencije.
+Kada je neki zadatak poslan load balanceru, load balancer će taj zadatak poslati ili prvom slobodnom workeru ili workeru koji trenutno izvodi najmanje zadataka.
 
 ## Failover
-Kako bi se omogucio failover, u slucaju prestanka rada balancera, svaki worker je sposoban ponovno pokrenuti load balancer.
-Jedna stvar koja jos nije implementirana je nacin odlucivanja workera koji pokrece load balancer. **WORK IN PROGRESS**
+Kroz cijelo izvođenje, sustav periodički provodi provjere sam nad sobom, na način da load balancer svaki period provjeri jesu li workeri dostupni, te ako nisu izbacuje ih iz liste dostupnih workera.
+Workeri, kroz cijelo izvođenje, provjeravaju dostupnost load balancera i prilikom te provjere prepisuju listu dostupnih workera, te ukoliko load balancer prestane sa izvođenjem, registrirani worker sa najmanjim portom će ponovno pokrenuti load balancer.
 
-Kako bi se omogucilo provjeravanje jesu li workeri jos uvijek pokrenuti, load balancer ima metodu koja svaki period vremena provjerava da li su svi registrirani workeri jos uvijek dostupni.
 
-## Pokretanje sustava
+# Pokretanje sustava
+Kako se sustav sastoji od jednog load balancera i neodređenog broja workera, potrebno je prvo pokrenuti load balancer a potom pokrenuti workere.
 
-### Pokretanje load balancera
-Unutar ./src/ potrebno je pokreniti slijedece naredbe
+## Pokretanje load balancera
+Unutar ./src/ potrebno je pokreniti slijedeće naredbe
 > python -m uvicorn balancer:app --reload
 
-### Pokretanje workera
-S obzirom na broj worker-a, potrebno je odrediti nekoliko portova na kojima ce se ti workeri pokretati.
-Za odredjivanje porta na kojem ce se pokretati worker, koristimo slijedecu naredbu unutar ./src/
+## Pokretanje workera
+S obzirom na broj worker-a, potrebno je odrediti portove na kojima će se ti workeri pokretati.
+Port korišten za pokretanje workera nikada ne smije biti 8000, zato što je to predodređeni port na kojemu se pokreće load balancer.
+Za pokretanje workera na određenom portu, koristimo slijedecu naredbu unutar ./src/ ~~odredjivanje porta na kojem ce se pokretati worker, koristimo slijedecu naredbu unutar ./src/~~
 > python -m uvicorn worker:app --reload --port X
 Gdje je X broj porta.
