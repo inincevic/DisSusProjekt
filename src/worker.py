@@ -58,7 +58,7 @@ def do_work(message):
     # print(f"I recieved the following message: {message}.")
     
     # Sleep is used to simulaate processing time
-    time.sleep(20)
+    time.sleep(30)
 
     message2 = message[::-1]
     
@@ -183,7 +183,7 @@ async def is_balancer_online():
         balancer_registered_workers = updated_worker_list
         # Print that once again prints the new list of the workers that are registered on the balancer
         # print(balancer_registered_workers)
-        await asyncio.sleep(60)
+        await asyncio.sleep(20)
 
 # In order to make this plausible without implementing RAFT, I will be assuming a single point of failure. To better explain, I will be assuming that either a
 # worker or the balancer will fail, never both.
@@ -194,7 +194,7 @@ async def is_balancer_online():
 async def am_I_first():
     global port
 
-    print("inside am I first")
+    #print("inside am I first")
     am_I_first_bool = False
     lowest_port = 10000
     

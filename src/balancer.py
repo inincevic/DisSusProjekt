@@ -33,11 +33,17 @@ def available():
 # Route on which the workers register in the load balancer
 @app.get("/register_worker/{port}")
 def new_worker(request: fastapi.Request, port):
+    global workers
     client_ip = request.client.host
     client_port = port
 
     # Prints out from which IP and which Port the registration request came from. Used for testing
     # print(f"Request from {client_ip}:{client_port}")
+
+    # Checking if the worker has already been registered on the load balancer
+    for worker in workers:
+        if client_port == worker["port"]:
+            return "This worker has already been registered."
 
     worker_name = "worker" + str(client_port)
     workers.append({
@@ -79,7 +85,7 @@ async def is_worker_available():
         # print("Updated the list of available workers")
         # print(workers)
         # print("------------------------------------")
-        await asyncio.sleep(60)
+        await asyncio.sleep(20)
 
 
 # Route for sharing the current list of available workers with the workers
@@ -108,7 +114,7 @@ async def sleep_work(message):
     
     async with httpx.AsyncClient() as client:
         task_worker["running"] += 1
-        response = await client.get(url, timeout = 25)
+        response = await client.get(url, timeout = 40)
         task_worker["running"] -= 1
         task_worker["total_tasks_done"] += 1
         return json.loads(response.text)
