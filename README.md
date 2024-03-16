@@ -11,9 +11,9 @@ Distribuirani je sustav zato što se radi o više poslužitelja sa raznolikim za
 # Elementi projekta
 
 ## Zadan posao workerima
-Svaki worker ima mogucnost pisanja u datoteku kojoj svi workeri imaju pristup.
+Svaki worker ima mogućnost pisanja u datoteku kojoj svi workeri imaju pristup.
 Ta datoteka zove se write_file.txt.
-Svaki worker koji se pokrene provjerava postoji li već ta datoteka, te ako ne postoji, workeri imaju mogucnost kreirati tu datoteku.
+Svaki worker koji se pokrene provjerava postoji li već ta datoteka, te ako ne postoji, workeri imaju mogućnost kreirati tu datoteku.
 
 Postoje dvije rute u svrhu rada workera: ruta za pisanje u datoteku i ruta za čitanje iz datoteke.
 
@@ -34,7 +34,7 @@ Workeri, kroz cijelo izvođenje, provjeravaju dostupnost load balancera i prilik
 Kako se sustav sastoji od jednog load balancera i neodređenog broja workera, potrebno je prvo pokrenuti load balancer a potom pokrenuti workere.
 
 ## Pokretanje load balancera
-Unutar ./src/ potrebno je pokreniti slijedeće naredbe
+Unutar ./src/ potrebno je pokrenuti slijedeće naredbe
 > python -m uvicorn balancer:app --reload
 
 ## Pokretanje workera
