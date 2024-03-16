@@ -19,7 +19,7 @@ Postoje dvije rute u svrhu rada workera: ruta za pisanje u datoteku i ruta za č
 
 Kako bi se moglo simulirati "zagušenje" sustava, te provjeriti kako load balancer šalje zadatke workerima napravljena je dodatna ruta koja ima u sebi jednostavniji zadatak okretanja poruke naopako i čekanja period vremena.
 
-## Rad sustava ~~aplikacije~~
+## Rad sustava
 Očekivanje ovog sustava je da je load balancer pokrenut prije ijednog workera.
 
 Prilikom pokretanja, workeri se automatski registriraju na load balanceru tako da load balancer može slati zadatke workerima bez vanjske intervencije.
